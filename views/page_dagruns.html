@@ -1,0 +1,162 @@
+{{ block "page_dagruns" . }}
+<DOCTYPE html>
+    {{ template "header" }}
+    <body data-theme="sunset">
+        {{ template "navbar" . }}
+        {{ template "autosync_button" }}
+        <div class="divider divider-secondary py-4">Statistics</div>
+        {{ template "dagrun_stats" . }}
+        <div class="divider divider-secondary py-4">Latest DAG Runs</div>
+        {{ template "dagrun_latest_num" }}
+        {{ template "dagrun_list" . }}
+
+        <script>
+            {{ template "setActive" }}
+        </script>
+    </body>
+</html>
+{{ end }}
+
+{{ define "autosync_button" }}
+<div class="flex justify-end px-4 py-0">
+    <span class="mr-2">Auto Sync:</span>
+    <label class="swap swap-flip">
+      <input id="sync-toggle" type="checkbox" checked />
+      <div class="swap-on" hx-post="/dagruns/sync/stop" hx-swap="none">ON</div>
+      <div class="swap-off" hx-post="/dagruns/sync/start" hx-target="body" hx-swap="none">OFF</div>
+    </label>
+</div>
+{{ end }}
+
+{{ block "dagrun_stats" . }}
+<div id="dagrun_stats" hx-get="/dagruns/stats"
+    hx-trigger="every {{ .SyncSeconds}}s, change from:(#sync-toggle), click from:(#dagrun-num)"
+    hx-swap="outerHTML" class="container m-auto"
+>
+    <div class="stats shadow flex flex-col md:flex-row flex-wrap gap-2">
+      <div class="stat flex-1 place-items-center">
+        <div class="stat-title">Completed Runs</div>
+        <div class="stat-value">{{.Stats.Dagruns.Success}}</div>
+        <div class="stat-desc">Failures: {{.Stats.Dagruns.Failed}}</div>
+      </div>
+
+      <div class="stat flex-1 place-items-center">
+        <div class="stat-title">Active Runs</div>
+        <div class="stat-value text-secondary">{{.Stats.Dagruns.Running}}</div>
+        <div class="stat-desc">Scheduled: {{.Stats.Dagruns.Scheduled}}</div>
+      </div>
+
+      <div class="stat flex-1 place-items-center">
+        <div class="stat-title">Completed Tasks</div>
+        <div class="stat-value">{{.Stats.DagrunTasks.Success}}</div>
+        <div class="stat-desc">Failed: {{.Stats.DagrunTasks.Failed}}</div>
+      </div>
+
+      <div class="stat flex-1 place-items-center">
+        <div class="stat-title">Active Tasks</div>
+        <div class="stat-value text-secondary">{{.Stats.DagrunTasks.Running}}</div>
+        <div class="stat-desc">Scheduled: {{.Stats.DagrunTasks.Scheduled}}</div>
+      </div>
+
+      <div class="stat flex-1 place-items-center">
+        <div class="stat-title">Tasks queued</div>
+        <div class="stat-value">{{.Stats.TaskSchedulerQueueLen}}</div>
+        <div class="stat-desc">Runs: {{.Stats.DagrunQueueLen}}</div>
+      </div>
+
+      <div class="stat flex-1 place-items-center">
+        <div class="stat-title">Goroutines</div>
+        <div class="stat-value text-secondary">{{.Stats.GoroutinesNum}}</div>
+        <div class="stat-desc">Task Scheduler</div>
+      </div>
+    </div>
+</div>
+{{ end }}
+
+{{ define "dagrun_latest_num" }}
+<div id="dagrun-num" class="flex justify-end px-4 py-0">
+    <div class="join">
+      <button class="join-item btn btn-sm"
+        hx-post="/dagruns/latest/len" hx-vals='{"num": 5}' hx-swap="none"
+        onclick="setActive(this)">5</button>
+      <button class="join-item btn btn-sm btn-active"
+        hx-post="/dagruns/latest/len" hx-vals='{"num": 10}' hx-swap="none"
+        onclick="setActive(this)">10</button>
+      <button class="join-item btn btn-sm"
+        hx-post="/dagruns/latest/len" hx-vals='{"num": 25}' hx-swap="none"
+        onclick="setActive(this)">25</button>
+      <button class="join-item btn btn-sm"
+        hx-post="/dagruns/latest/len" hx-vals='{"num": 50}' hx-swap="none"
+        onclick="setActive(this)">50</button>
+    </div>
+</div>
+{{ end }}
+
+{{ block "dagrun_list" . }}
+<div id="dagrun_list"
+    hx-get="/dagruns/latest"
+    hx-trigger="every {{ .SyncSeconds}}s, change from:(#sync-toggle), click from:(#dagrun-num)"
+    hx-swap="outerHTML"
+    class="p-4 md:p-8 lg:p-12"
+>
+    <div class="flex flex-col gap-4">
+    {{ range .LatestDagRuns }}
+        <div class="flex items-center justify-between bg-base-100 p-4 shadow rounded-lg">
+
+        <!-- RUN ID -->
+        <div class="flex flex-col md:w-1/5">
+            <div class="text-sm font-medium text-gray-500">Run ID</div>
+            <div class="text-lg font-bold text-primary truncate">
+                <a class="link link-primary href="http://localhost:8181/dagrun/{{ .RunId }}">{{ .RunId }}</a>
+            </div>
+        </div>
+
+        <!-- DAG ID -->
+        <div class="flex flex-col w-full md:w-1/4">
+            <div class="text-sm font-medium text-gray-500">DAG ID</div>
+            <div class="text-lg font-bold text-primary truncate">{{ .DagId }}</div>
+        </div>
+
+        <!-- Execution Time with Tooltip -->
+        <div class="flex flex-col items-center w-full md:w-1/3">
+            <span class="text-sm font-medium text-gray-500">Execution Time</span>
+            <span class="tooltip" data-tip="{{ .ExecTs.Time }} ({{ .ExecTs.Timezone }})">
+                <span class="text-lg font-bold text-secondary cursor-pointer">{{ .ExecTs.ToDisplay }}</span>
+            </span>
+        </div>
+
+        <!-- Status -->
+        <div class="flex flex-col w-full md:w-1/4">
+            <div class="text-sm font-medium text-gray-500">Status</div>
+            <div class="{{ if eq .Status "SUCCESS" }}text-success{{ else if eq .Status "FAILED" }}text-error{{ else }}text-warning{{ end }} text-lg font-bold">{{ .Status }}</div>
+        </div>
+
+        <!-- Duration -->
+        <div class="flex flex-col w-full md:w-1/4">
+            <div class="text-sm font-medium text-gray-500">Duration</div>
+            <div class="text-lg font-bold text-primary">{{ .Duration }}</div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="flex flex-col items-end  w-full md:w-1/4 mt-2 md:mt-0">
+            <div class="text-sm font-medium text-gray-500 mb-1">
+                Tasks: {{ .TaskCompletedNum }}/{{ .TaskNum }}
+            </div>
+            <progress class="progress progress-primary w-full"
+                value="{{ .TaskCompletedNum }}"
+                max="{{ .TaskNum }}">
+            </progress>
+        </div>
+    </div>
+    {{ end }}
+    </div>
+</div>
+{{ end }}
+
+{{ define "setActive" }}
+function setActive(element) {
+    const buttons = document.querySelectorAll('.join-item');
+    buttons.forEach(button => button.classList.remove('btn-active'));
+    element.classList.add('btn-active');
+}
+{{ end }}
