@@ -20,11 +20,7 @@
 
 {{ define "autosync_button" }}
 <div class="flex justify-end px-4 py-0">
-    <span id="sync-ts" hx-get="/synctime"
-        hx-trigger="htmx:afterOnLoad from:#dagrun_stats"
-        hx-swap="innerHTML"
-        hx-target="#sync-ts"
-        class="mr-4">Synced: Never</span>
+    <span id="sync-ts" class="mr-4">Synced: Never</span>
     <span class="mr-2">Auto Sync:</span>
     <label class="swap swap-flip">
       <input id="sync-toggle" type="checkbox" checked />
