@@ -35,6 +35,7 @@
     hx-trigger="every {{ .SyncSeconds}}s, change from:(#sync-toggle), click from:(#dagrun-num)"
     hx-swap="outerHTML" class="container m-auto"
 >
+    {{ template "alert" (index .Errors "dagrunStatsErr") }}
     <div class="stats shadow flex flex-col md:flex-row flex-wrap gap-2">
       <div class="stat flex-1 place-items-center">
         <div class="stat-title">Completed Runs</div>
@@ -101,6 +102,7 @@
     hx-swap="outerHTML"
     class="p-4 md:p-8 lg:p-12"
 >
+    {{ template "alert" (index .Errors "dagrunListErr") }}
     <div class="flex flex-col gap-4">
     {{ range .LatestDagRuns }}
         <div class="flex items-center justify-between bg-base-100 p-4 shadow rounded-lg">
@@ -153,6 +155,25 @@
     {{ end }}
     </div>
 </div>
+{{ end }}
+
+{{ define "alert" }}
+    {{ if . }}
+        <div role="alert" class="alert alert-error">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 shrink-0 stroke-current"
+            fill="none"
+            viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        <span>{{ . }}</span>
+        </div>
+    {{ end }}
 {{ end }}
 
 {{ define "set_active" }}

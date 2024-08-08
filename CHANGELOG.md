@@ -1,3 +1,7 @@
+# [v0.0.5] - 2024-08-08
+
+- Added displaying errors on DAG runs page.
+
 # [v0.0.3] - 2024-08-08
 
 - Add "Synced: {time}" in DAG Runs page, to denote the latest synchronization
