@@ -11,7 +11,8 @@
         {{ template "dagrun_list" . }}
 
         <script>
-            {{ template "setActive" }}
+            {{ template "set_active" }}
+            {{ template "synced_timestamp" }}
         </script>
     </body>
 </html>
@@ -19,6 +20,11 @@
 
 {{ define "autosync_button" }}
 <div class="flex justify-end px-4 py-0">
+    <span id="sync-ts" hx-get="/synctime"
+        hx-trigger="htmx:afterOnLoad from:#dagrun_stats"
+        hx-swap="innerHTML"
+        hx-target="#sync-ts"
+        class="mr-4">Synced: Never</span>
     <span class="mr-2">Auto Sync:</span>
     <label class="swap swap-flip">
       <input id="sync-toggle" type="checkbox" checked />
@@ -153,10 +159,28 @@
 </div>
 {{ end }}
 
-{{ define "setActive" }}
+{{ define "set_active" }}
 function setActive(element) {
     const buttons = document.querySelectorAll('.join-item');
     buttons.forEach(button => button.classList.remove('btn-active'));
     element.classList.add('btn-active');
 }
+{{ end }}
+
+{{ define "synced_timestamp" }}
+document.addEventListener("htmx:afterOnLoad", function(event) {
+    if (
+        event.detail.target.id === "dagrun_stats" ||
+        event.detail.target.id === "dagrun_list"
+    ) {
+        var now = new Date();
+        var hours = String(now.getHours()).padStart(2, '0');
+        var minutes = String(now.getMinutes()).padStart(2, '0');
+        var seconds = String(now.getSeconds()).padStart(2, '0');
+        var localTime = hours + ':' + minutes + ':' + seconds;
+
+        var syncTs = document.getElementById('sync-ts');
+        syncTs.innerHTML = "Synced: " + localTime;
+    }
+});
 {{ end }}
