@@ -36,7 +36,7 @@
     hx-swap="outerHTML" class="container m-auto"
 >
     {{ template "alert" (index .Errors "dagrunStatsErr") }}
-    <div class="stats shadow flex flex-col md:flex-row flex-wrap gap-2">
+    <div class="stats shadow flex flex-row flex-wrap gap-2">
       <div class="stat flex-1 place-items-center">
         <div class="stat-title">Completed Runs</div>
         <div class="stat-value">{{.Stats.Dagruns.Success}}</div>
@@ -103,12 +103,13 @@
     class="p-4 md:p-8 lg:p-12"
 >
     {{ template "alert" (index .Errors "dagrunListErr") }}
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-2">
     {{ range .LatestDagRuns }}
-        <div class="flex items-center justify-between bg-base-100 p-4 shadow rounded-lg">
+        <!-- <div class="flex items-center justify-between bg-base-100 p-4 shadow rounded-lg"> -->
+        <div class="flex flex-col gap-2 bg-base-100 p-2 shadow rounded-lg md:flex-row md:items-center md:justify-between">
 
         <!-- RUN ID -->
-        <div class="flex flex-col md:w-1/5">
+        <div class="flex flex-col md:w-1/12">
             <div class="text-sm font-medium text-gray-500">Run ID</div>
             <div class="text-lg font-bold text-primary truncate">
                 <a class="link link-primary href="http://localhost:8181/dagrun/{{ .RunId }}">{{ .RunId }}</a>
@@ -116,13 +117,15 @@
         </div>
 
         <!-- DAG ID -->
-        <div class="flex flex-col w-full md:w-1/4">
+        <div class="flex flex-col w-full md:w-1/3">
             <div class="text-sm font-medium text-gray-500">DAG ID</div>
-            <div class="text-lg font-bold text-primary truncate">{{ .DagId }}</div>
+            <div class="text-lg font-bold text-primary truncate" title="{{ .DagId }}">
+                <span class="block max-w-full truncate">{{ .DagId }}</span>
+            </div>
         </div>
 
         <!-- Execution Time with Tooltip -->
-        <div class="flex flex-col items-center w-full md:w-1/3">
+        <div class="flex flex-col items-center w-full md:w-1/4">
             <span class="text-sm font-medium text-gray-500">Execution Time</span>
             <span class="tooltip" data-tip="{{ .ExecTs.Time }} ({{ .ExecTs.Timezone }})">
                 <span class="text-lg font-bold text-secondary cursor-pointer">{{ .ExecTs.ToDisplay }}</span>
@@ -136,7 +139,7 @@
         </div>
 
         <!-- Duration -->
-        <div class="flex flex-col w-full md:w-1/4">
+        <div class="flex flex-col w-full md:w-1/6">
             <div class="text-sm font-medium text-gray-500">Duration</div>
             <div class="text-lg font-bold text-primary">{{ .Duration }}</div>
         </div>
