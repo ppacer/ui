@@ -1,3 +1,8 @@
+# [v0.0.6] - 2024-08-18
+
+- Improved logo behavior and Execution Timestamp on DAG runs page for small
+screens.
+
 # [v0.0.5] - 2024-08-08
 
 - Added displaying errors on DAG runs page.

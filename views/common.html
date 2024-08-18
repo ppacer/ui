@@ -15,25 +15,27 @@
 {{ block "navbar" . }}
     <header>
         <div class="navbar bg-base-100">
-          <div class="flex-1">
-            <img src="/assets/logo.svg" style="width: 150px;">
-          </div>
-          <div class="flex-none">
-            <ul class="menu menu-horizontal px-1 gap-4">
-                <li>
-                    <a href="/" class="btn {{ if eq .Page "Runs" }}btn-primary{{else}}btn-accent btn-outline shadow-info{{end}}">Runs</a>
-                </li>
-                <li>
-                    <a href="/hist" class="btn {{ if eq .Page "History" }}btn-primary{{else}}btn-accent btn-outline shadow-info{{end}}">History</a>
-                </li>
-                <li>
-                    <a href="/dags" class="btn {{ if eq .Page "DAGs" }}btn-primary{{else}}btn-accent btn-outline shadow-info{{end}}">DAGs</a>
-                </li>
-                <li>
-                    <a href="/sched" class="btn {{ if eq .Page "Schedules" }}btn-primary{{else}}btn-accent btn-outline shadow-info{{end}}">Schedules</a>
-                </li>
-            </ul>
-          </div>
+            <div class="flex md:flex-1">
+                <a href="/">
+                    <img src="/assets/logo.svg" class="h-6 md:h-10">
+                </a>
+            </div>
+            <div class="flex-none">
+                <ul class="menu menu-horizontal px-1 gap-2 md:gap-4">
+                    <li>
+                        <a href="/" class="btn btn-sm md:btn-md {{ if eq .Page "Runs" }}btn-primary{{else}}btn-accent btn-outline shadow-info{{end}}">Runs</a>
+                    </li>
+                    <li>
+                        <a href="/hist" class="btn btn-sm md:btn-md {{ if eq .Page "History" }}btn-primary{{else}}btn-accent btn-outline shadow-info{{end}}">History</a>
+                    </li>
+                    <li>
+                        <a href="/dags" class="btn btn-sm md:btn-md {{ if eq .Page "DAGs" }}btn-primary{{else}}btn-accent btn-outline shadow-info{{end}}">DAGs</a>
+                    </li>
+                    <li>
+                        <a href="/sched" class="btn btn-sm md:btn-md {{ if eq .Page "Schedules" }}btn-primary{{else}}btn-accent btn-outline shadow-info{{end}}">Schedules</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </header>
 {{ end }}
