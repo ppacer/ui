@@ -8,7 +8,8 @@ import (
 )
 
 type pageDags struct {
-	Page string
+	Page    string
+	Version string
 
 	templates *templates
 	schedApi  scheduler.API
@@ -23,6 +24,7 @@ func newPageDags(
 	}
 	return &pageDags{
 		Page:      "DAGs",
+		Version:   Version,
 		templates: tmpl,
 		schedApi:  schedApi,
 		logger:    logger,

@@ -22,6 +22,7 @@ type pageDagRuns struct {
 	DagRunsNum    int
 	SyncSeconds   int
 	Errors        map[string]string
+	Version       string
 
 	templates *templates
 	schedApi  scheduler.API
@@ -39,6 +40,7 @@ func newPageDagRuns(
 		DagRunsNum:  10,
 		SyncSeconds: 1,
 		Errors:      map[string]string{},
+		Version:     Version,
 
 		templates: tmpl,
 		schedApi:  schedApi,

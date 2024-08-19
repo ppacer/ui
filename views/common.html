@@ -3,7 +3,7 @@
     <title>ppacer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/css/output.css">
-    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <link rel="icon" type="image/png" href="/assets/favicon.png" sizes="32x32">
     <script
         src="https://unpkg.com/htmx.org@2.0.1"
         integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/"
@@ -38,4 +38,29 @@
             </div>
         </div>
     </header>
+{{ end }}
+
+{{ block "footer" . }}
+<footer class="footer bg-neutral text-neutral-content flex flex-wrap items-center justify-between p-4 w-full mt-auto">
+  <aside class="flex items-center space-x-2">
+    <a href="https://ppacer.org" target="_blank" rel="noopener noreferrer">
+      <img src="/assets/favicon.svg" alt="ppacer logo letter" width="24"
+                height="24" class="fill-current">
+    </a>
+    <p>
+        Built with <a href="https://htmx.org/" class="underline">HTMX</a> and
+        <a href="https://tailwindcss.com/" class="underline">Tailwind CSS</a>.
+    </p>
+  </aside>
+  <nav class="flex items-center space-x-4">
+    <p>
+        Version: <strong>{{ . }}</strong>
+    </p>
+    <a href="https://github.com/ppacer/core" target="_blank"
+        rel="noopener noreferrer">
+        <img src="/assets/github-mark-white.svg" alt="GitHub Logo" width="24"
+            height="24" class="fill-current">
+    </a>
+  </nav>
+</footer>
 {{ end }}

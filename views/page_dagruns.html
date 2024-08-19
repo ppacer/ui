@@ -9,6 +9,7 @@
         <div class="divider divider-secondary py-4">Latest DAG Runs</div>
         {{ template "dagrun_latest_num" }}
         {{ template "dagrun_list" . }}
+        {{ template "footer" .Version }}
 
         <script>
             {{ template "set_active" }}
