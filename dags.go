@@ -18,6 +18,7 @@ type pageDags struct {
 
 func newPageDags(
 	schedApi scheduler.API, tmpl *templates, logger *slog.Logger,
+	config Config,
 ) *pageDags {
 	if logger == nil {
 		logger = defaultLogger()

@@ -12,7 +12,7 @@ import (
 // function panics.
 func DefaultStarted(schedulerPort, uiPort int) {
 	schedulerUrl := fmt.Sprintf("http://localhost:%d", schedulerPort)
-	uiDefault := NewUI(schedulerUrl, defaultLogger())
+	uiDefault := NewUI(schedulerUrl, defaultLogger(), nil)
 	portStr := fmt.Sprintf(":%d", uiPort)
 	fmt.Println("Starting ppacer UI on ", portStr)
 	err := http.ListenAndServe(portStr, uiDefault.Server())
@@ -27,7 +27,7 @@ func DefaultStarted(schedulerPort, uiPort int) {
 // This function is primarily for local development convenience. When there is
 // an error on starting UI server this function panics.
 func DefaultStartedMocks(uiPort int) {
-	uiDefault := NewUIWithMocks(defaultLogger())
+	uiDefault := NewUIWithMocks(defaultLogger(), nil)
 	portStr := fmt.Sprintf(":%d", uiPort)
 	fmt.Println("Starting ppacer UI with mocked data on ", portStr)
 	err := http.ListenAndServe(portStr, uiDefault.Server())

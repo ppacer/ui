@@ -31,6 +31,7 @@ type pageDagRuns struct {
 
 func newPageDagRuns(
 	schedApi scheduler.API, tmpl *templates, logger *slog.Logger,
+	config Config,
 ) *pageDagRuns {
 	if logger == nil {
 		logger = defaultLogger()
@@ -38,7 +39,7 @@ func newPageDagRuns(
 	return &pageDagRuns{
 		Page:        "Runs",
 		DagRunsNum:  10,
-		SyncSeconds: 1,
+		SyncSeconds: config.DagRunsSyncSeconds,
 		Errors:      map[string]string{},
 		Version:     Version,
 
