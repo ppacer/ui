@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -69,6 +70,12 @@ func (sm SchedulerMock) UIDagrunLatest(n int) (api.UIDagrunList, error) {
 		list[i] = randomDagrunRow(runId+i, dagIds[id])
 	}
 	return list, nil
+}
+
+// TODO
+func (sm SchedulerMock) UIDagrunDetails(runId int) (api.UIDagrunDetails, error) {
+	// TODO
+	return api.UIDagrunDetails{}, errors.New("not implemented")
 }
 
 func randomStatusCounts(interval int) api.StatusCounts {

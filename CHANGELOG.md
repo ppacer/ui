@@ -1,3 +1,8 @@
+# [v0.0.7] - 2024-08-25
+
+- Extend SchedulerMock by UIDagrunDetails method, to be compliant with
+scheduler.API - not implemented yet though.
+
 # [v0.0.6] - 2024-08-18
 
 - Improved logo behavior and Execution Timestamp on DAG runs page for small
