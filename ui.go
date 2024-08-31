@@ -74,6 +74,10 @@ func (s *UI) Server() http.Handler {
 	mux.HandleFunc("POST /dagruns/sync/stop", dagruns.SetSyncSeconds(1000000))
 	mux.HandleFunc("POST /dagruns/sync/start", dagruns.SetSyncSeconds(1))
 
+	// Page for DAG run details for given runId
+	drDetails := newPageDagRunDetails(s.schedulerAPI, templates, s.logger)
+	mux.HandleFunc("/dagruns/{runId}", drDetails.MainHandler)
+
 	// Page for DAGs
 	dagsPage := newPageDags(s.schedulerAPI, templates, s.logger, s.config)
 	mux.HandleFunc("/dags", dagsPage.MainHandler)

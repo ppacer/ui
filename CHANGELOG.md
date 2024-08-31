@@ -1,3 +1,7 @@
+# [v0.1.0] - 2024-08-31
+
+- First sketch for DAG run details, including task logs.
+
 # [v0.0.7] - 2024-08-25
 
 - Extend SchedulerMock by UIDagrunDetails method, to be compliant with
