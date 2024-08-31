@@ -1,3 +1,10 @@
+# [v0.1.1] - 2024-08-31
+
+- Add AttributesJson to log records in DAG run details.
+- Hide Positions columns in task list in DAG run details, to make it more
+readable.
+- Adjust font size on small screens for log records.
+
 # [v0.1.0] - 2024-08-31
 
 - First sketch for DAG run details, including task logs.

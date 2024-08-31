@@ -83,7 +83,7 @@
                         </div>
 
                         <!-- Position -->
-                        <div class="flex flex-col w-full md:w-1/6">
+                        <div class="hidden md:flex flex-col w-full md:w-1/6">
                             <div class="text-xs md:text-sm font-medium text-gray-500">Position</div>
                             <div class="text-sm md:text-lg font-bold text-primary">
                                 ({{ .Pos.Depth }}, {{ .Pos.Width }})
@@ -115,21 +115,29 @@
                             <h4 class="text-md font-semibold mb-2">Logs ({{ .TaskLogs.LoadedRecords }}/{{ .TaskLogs.LogRecordsCount }}):</h4>
                             <ul class="space-y-2">
                                 {{ range .TaskLogs.Records }}
-                                <li class="text-sm">
+                                <li class="text-xs md:text-sm">
                                     <span class="font-bold text-secondary">{{ .InsertTs.Time }}</span>
                                     {{ if eq .Level "ERR" }}
                                         <span class="font-bold text-red-500">[{{ .Level }}]:</span>
                                         <span class="text-red-500">{{ .Message }}</span>
+                                        {{ if ne .AttributesJson "{}" }}
+                                            <span class="text-red-600">({{ .AttributesJson }})</span>
+                                        {{ end }}
                                     {{ else }}
                                         <span class="font-medium">[{{ .Level }}]:</span>
                                         <span class="text-gray-400">{{ .Message }}</span>
+                                        {{ if ne .AttributesJson "{}" }}
+                                            <span class="text-gray-600">({{ .AttributesJson }})</span>
+                                        {{ end }}
                                     {{ end }}
                                 </li>
                                 {{ end }}
                             </ul>
-                            <button class="btn btn-xs md:btn-sm btn-info my-4">
-                                Sync logs
-                            </button>
+                            {{ if eq .Status "RUNNING" }}
+                                <button class="btn btn-xs md:btn-sm btn-info my-4">
+                                    Sync logs
+                                </button>
+                            {{ end }}
                         </div>
                     </div>
                 </div>
@@ -140,7 +148,7 @@
 {{ end }}
 
 {{ block "status" . }}
-    <div class="text-sm md:text-lg font-bold text-primary">
+    <div class="text-xs md:text-lg font-bold text-primary">
         {{ if eq . "SUCCESS" }}
             <span class="text-success">✅ SUCCESS</span>
         {{ else if eq . "FAILED" }}
