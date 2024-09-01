@@ -24,8 +24,10 @@
         DAG Run Details: #{{ .Details.RunId }} - {{ .Details.DagId }}
     </h2>
 
+    {{ template "alert" (index .Errors "dagrunDetailsErr") }}
+
     <div id="dagrun_details_summary" class="container m-auto">
-        <div class="stats shadow flex flex-row flex-wrap gap-2">
+        <div class="hidden md:flex stats shadow flex-row flex-wrap gap-2">
           <div class="stat flex-1 place-items-center">
             <div class="stat-title">Execution time</div>
             <div class="stat-value">{{.Details.ExecTs.ToDisplay}}</div>
@@ -34,17 +36,7 @@
           <div class="stat flex-1 place-items-center">
             <div class="stat-title">Status</div>
             <div class="stat-value text-secondary">
-                {{ if eq .Details.Status "SUCCESS" }}
-                    <span class="text-success">✅ SUCCESS</span>
-                {{ else if eq .Details.Status "FAILED" }}
-                    <span class="text-error">❌ FAILED</span>
-                {{ else if eq .Details.Status "RUNNING" }}
-                    <span class="text-warning">🔥 RUNNING</span>
-                {{ else if eq .Details.Status "PENDING" }}
-                    <span class="text-info">🕒 PENDING</span>
-                {{ else }}
-                    <span class="text-gray-400">⬜ NOT STARTED</span>
-                {{ end }}
+                {{ template "status_raw" .Details.Status }}
             </div>
           </div>
 
@@ -57,6 +49,23 @@
             <div class="stat-title">Duration to last 10 runs</div>
             <div class="stat-value">+350ms (13%)</div>
           </div>
+        </div>
+
+        <!-- Simple layout for small screens -->
+        <div class="md:hidden shadow rounded-lg p-4 space-y-2">
+            <div>
+                <strong>Execution time:</strong> {{.Details.ExecTs.ToDisplay}}
+            </div>
+
+            <div>
+                <strong>Status:</strong>
+                <span class="text-secondary">
+                    {{ template "status_raw" .Details.Status }}
+                </span>
+            </div>
+
+            <div><strong>Duration:</strong> {{.Details.Duration}}</div>
+            <div><strong>Duration to last 10 runs:</strong> +350ms (13%)</div>
         </div>
     </div>
 {{ end }}
@@ -117,7 +126,7 @@
                                 {{ range .TaskLogs.Records }}
                                 <li class="text-xs md:text-sm">
                                     <span class="font-bold text-secondary">{{ .InsertTs.Time }}</span>
-                                    {{ if eq .Level "ERR" }}
+                                    {{ if eq .Level "ERROR" }}
                                         <span class="font-bold text-red-500">[{{ .Level }}]:</span>
                                         <span class="text-red-500">{{ .Message }}</span>
                                         {{ if ne .AttributesJson "{}" }}
@@ -149,16 +158,20 @@
 
 {{ block "status" . }}
     <div class="text-xs md:text-lg font-bold text-primary">
-        {{ if eq . "SUCCESS" }}
-            <span class="text-success">✅ SUCCESS</span>
-        {{ else if eq . "FAILED" }}
-            <span class="text-error">❌ FAILED</span>
-        {{ else if eq . "RUNNING" }}
-            <span class="text-warning">🔥 RUNNING</span>
-        {{ else if eq . "PENDING" }}
-            <span class="text-info">🕒 PENDING</span>
-        {{ else }}
-            <span class="text-gray-400">⬜ NOT STARTED</span>
-        {{ end }}
+        {{ template "status_raw" . }}
     </div>
+{{ end }}
+
+{{ block "status_raw" . }}
+    {{ if eq . "SUCCESS" }}
+        <span class="text-success">✅ SUCCESS</span>
+    {{ else if eq . "FAILED" }}
+        <span class="text-error">❌ FAILED</span>
+    {{ else if eq . "RUNNING" }}
+        <span class="text-warning">🔥 RUNNING</span>
+    {{ else if eq . "PENDING" }}
+        <span class="text-info">🕒 PENDING</span>
+    {{ else }}
+        <span class="text-gray-400">⬜ NOT STARTED</span>
+    {{ end }}
 {{ end }}

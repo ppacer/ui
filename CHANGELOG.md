@@ -1,3 +1,9 @@
+# [v0.1.2] - 2024-09-01
+
+- Simplified DAG run details summary for small screens.
+- Add alert notification for DAG run details page.
+- Change ERR to ERROR regarding log levels in task logs.
+
 # [v0.1.1] - 2024-08-31
 
 - Add AttributesJson to log records in DAG run details.

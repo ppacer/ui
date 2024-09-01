@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	dagrunDetailsRundIdErr = "dagrunDetailsRunIdErr"
+	dagrunDetailsErr = "dagrunDetailsErr"
+	maxTaskIndent    = 10
 )
 
 // Type pageDagRunDetails keeps data required for DAG run details
@@ -53,7 +54,7 @@ func (pdrd *pageDagRunDetails) MainHandler(w http.ResponseWriter, r *http.Reques
 	if castErr != nil {
 		pdrd.logger.Error("Invalid runId. Cannot cast to int.", "runId",
 			runIdStr)
-		pdrd.Errors[dagrunDetailsRundIdErr] =
+		pdrd.Errors[dagrunDetailsErr] =
 			fmt.Sprintf("Invalid runId (%s) - cannot cast it to integer",
 				runIdStr)
 
@@ -69,9 +70,9 @@ func (pdrd *pageDagRunDetails) MainHandler(w http.ResponseWriter, r *http.Reques
 	drd, err := pdrd.schedApi.UIDagrunDetails(runId)
 	if err != nil {
 		msg := fmt.Sprintf("cannot read DAG run details: %s", err.Error())
-		http.Error(w, msg, http.StatusInternalServerError)
+		pdrd.Errors[dagrunDetailsErr] = msg
 	}
-	pdrd.Details = pdrd.prepareDagrunTaskDetails(drd, 10)
+	pdrd.Details = pdrd.prepareDagrunTaskDetails(drd, maxTaskIndent)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	renderErr := pdrd.templates.Render(w, "page_dagrun_details", pdrd)

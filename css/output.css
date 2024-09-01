@@ -3333,6 +3333,11 @@ html {
   background-color: var(--fallback-b3,oklch(var(--b3)/var(--tw-bg-opacity)));
 }
 
+.bg-white {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+}
+
 .fill-current {
   fill: currentColor;
 }
@@ -3506,6 +3511,33 @@ html {
 }
 
 @media (min-width: 768px) {
+  .md\:stats {
+    display: inline-grid;
+    border-radius: var(--rounded-box, 1rem);
+    --tw-bg-opacity: 1;
+    background-color: var(--fallback-b1,oklch(var(--b1)/var(--tw-bg-opacity)));
+    --tw-text-opacity: 1;
+    color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity)));
+  }
+
+  :where(.md\:stats) {
+    grid-auto-flow: column;
+    overflow-x: auto;
+  }
+
+  :where(.md\:stats) > :not([hidden]) ~ :not([hidden]) {
+    --tw-divide-x-reverse: 0;
+    border-right-width: calc(1px * var(--tw-divide-x-reverse));
+    border-left-width: calc(1px * calc(1 - var(--tw-divide-x-reverse)));
+    --tw-divide-y-reverse: 0;
+    border-top-width: calc(0px * calc(1 - var(--tw-divide-y-reverse)));
+    border-bottom-width: calc(0px * var(--tw-divide-y-reverse));
+  }
+
+  :is([dir="rtl"] .md\:stats > :not([hidden]) ~ :not([hidden])) {
+    --tw-divide-x-reverse: 1;
+  }
+
   .md\:btn-sm {
     height: 2rem;
     min-height: 2rem;
@@ -3562,6 +3594,10 @@ html {
 
   .md\:flex {
     display: flex;
+  }
+
+  .md\:hidden {
+    display: none;
   }
 
   .md\:h-8 {

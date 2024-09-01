@@ -257,7 +257,7 @@ func randomStatus() string {
 func randomLogLevel() string {
 	r := rand.Intn(10)
 	if r > 8 {
-		return "ERR"
+		return "ERROR"
 	}
 	if r > 6 {
 		return "WARN"
