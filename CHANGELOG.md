@@ -1,3 +1,8 @@
+# [v0.1.3] - 2024-09-01
+
+- Add single DAG run task synchronization (via Sync logs button) on DAG run
+    details view.
+
 # [v0.1.2] - 2024-09-01
 
 - Simplified DAG run details summary for small screens.

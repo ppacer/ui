@@ -12,11 +12,28 @@
             {{ template "dagrun_details_task_list" . }}
         </div>
 
+        <script>
+            function checkLogWindow(taskId) {
+                console.log(`checkLogWindow for taskId: ${taskId}`);
+                var logWindow = document.getElementById('log-window-' + taskId);
+                if (!logWindow.classList.contains('hidden')) {
+                  logWindow.setAttribute('data-open', 'true');
+                } else {
+                  logWindow.removeAttribute('data-open');
+                }
+            }
+            function keepLogWindowOpen(taskId) {
+                console.log(`keepLogWindowOpen for taskId: ${taskId}`);
+                var logWindow = document.getElementById('log-window-' + taskId);
+                if (logWindow.getAttribute('data-open') === 'true') {
+                  logWindow.classList.remove('hidden');
+                }
+            }
+        </script>
         {{ template "footer" .Version }}
     </body>
 </html>
 {{ end }}
-
 
 {{ block "dagrun_details_summary" . }}
     <!-- Page Title -->
@@ -75,85 +92,100 @@
     <div>
         <h3 class="text-xl font-semibold mb-2">Tasks</h3>
         <ul class="space-y-4">
+            {{ template "alert" (index .Errors "dagrunTaskDetailsErr") }}
             {{ range .Details.Tasks }}
-            <li class="flex items-center">
-                <!-- Indentation with dynamic margin and a vertical line, only on medium screens and up -->
-                <div class="hidden md:block md:flex-shrink-0" style="width: {{ .Pos.Indent }}rem;">
-                    <div class="border-l-2 border-gray-200 h-full"></div>
-                </div>
-
-                <!-- Task Content -->
-                <div class="flex-grow p-0 bg-base-100 rounded-lg shadow">
-                    <div class="flex justify-between items-center">
-                        <!-- Task ID -->
-                        <div class="flex flex-col w-full md:w-1/4">
-                            <div class="text-xs md:text-sm font-medium text-gray-500">Task</div>
-                            <div class="text-sm md:text-lg font-bold text-primary">{{ .TaskId }}</div>
-                        </div>
-
-                        <!-- Position -->
-                        <div class="hidden md:flex flex-col w-full md:w-1/6">
-                            <div class="text-xs md:text-sm font-medium text-gray-500">Position</div>
-                            <div class="text-sm md:text-lg font-bold text-primary">
-                                ({{ .Pos.Depth }}, {{ .Pos.Width }})
-                            </div>
-                        </div>
-
-                        <!-- Status -->
-                        <div class="flex flex-col w-full md:w-1/6">
-                            <div class="text-sm font-medium text-gray-500">Status</div>
-                            {{ template "status" .Status }}
-                        </div>
-
-                        <!-- Duration -->
-                        <div class="flex flex-col w-full md:w-1/6">
-                            <div class="text-xs md:text-sm font-medium text-gray-500">Duration</div>
-                            <div class="text-sm md:text-lg font-bold text-primary">{{ .Duration }}</div>
-                        </div>
-
-                        <!-- View Logs Button -->
-                        <button onclick="document.getElementById('log-window-{{ .TaskId }}').classList.toggle('hidden')"
-                            class="btn btn-xs md:btn-sm btn-secondary">
-                            View Logs ({{ .TaskLogs.LogRecordsCount }})
-                        </button>
-                    </div>
-
-                    <!-- Task Logs Window -->
-                    <div id="log-window-{{ .TaskId }}" class="mockup-window bg-base-300 border mt-4 hidden">
-                        <div class="bg-base-200 px-4 py-4">
-                            <h4 class="text-md font-semibold mb-2">Logs ({{ .TaskLogs.LoadedRecords }}/{{ .TaskLogs.LogRecordsCount }}):</h4>
-                            <ul class="space-y-2">
-                                {{ range .TaskLogs.Records }}
-                                <li class="text-xs md:text-sm">
-                                    <span class="font-bold text-secondary">{{ .InsertTs.Time }}</span>
-                                    {{ if eq .Level "ERROR" }}
-                                        <span class="font-bold text-red-500">[{{ .Level }}]:</span>
-                                        <span class="text-red-500">{{ .Message }}</span>
-                                        {{ if ne .AttributesJson "{}" }}
-                                            <span class="text-red-600">({{ .AttributesJson }})</span>
-                                        {{ end }}
-                                    {{ else }}
-                                        <span class="font-medium">[{{ .Level }}]:</span>
-                                        <span class="text-gray-400">{{ .Message }}</span>
-                                        {{ if ne .AttributesJson "{}" }}
-                                            <span class="text-gray-600">({{ .AttributesJson }})</span>
-                                        {{ end }}
-                                    {{ end }}
-                                </li>
-                                {{ end }}
-                            </ul>
-                            {{ if eq .Status "RUNNING" }}
-                                <button class="btn btn-xs md:btn-sm btn-info my-4">
-                                    Sync logs
-                                </button>
-                            {{ end }}
-                        </div>
-                    </div>
-                </div>
-            </li>
+                {{ template "dagrun_details_task_item" . }}
             {{ end }}
         </ul>
     </div>
+{{ end }}
+
+{{ block "dagrun_details_task_item" . }}
+    <li class="flex items-center" id="task-{{ .TaskId }}-{{ .Retry }}">
+        <!-- Indentation with dynamic margin and a vertical line, only on medium screens and up -->
+        <div class="hidden md:block md:flex-shrink-0" style="width: {{ .Pos.Indent }}rem;">
+            <div class="border-l-2 border-gray-200 h-full"></div>
+        </div>
+
+        <!-- Task Content -->
+        <div class="flex-grow p-0 bg-base-100 rounded-lg shadow">
+            <div class="flex justify-between items-center">
+                <!-- Task ID -->
+                <div class="flex flex-col w-full md:w-1/4">
+                    <div class="text-xs md:text-sm font-medium text-gray-500">Task</div>
+                    <div class="text-sm md:text-lg font-bold text-primary">{{ .TaskId }}</div>
+                </div>
+
+                <!-- Position -->
+                <div class="hidden md:flex flex-col w-full md:w-1/6">
+                    <div class="text-xs md:text-sm font-medium text-gray-500">Position</div>
+                    <div class="text-sm md:text-lg font-bold text-primary">
+                        ({{ .Pos.Depth }}, {{ .Pos.Width }})
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="flex flex-col w-full md:w-1/6">
+                    <div class="text-sm font-medium text-gray-500">Status</div>
+                    {{ template "status" .Status }}
+                </div>
+
+                <!-- Duration -->
+                <div class="flex flex-col w-full md:w-1/6">
+                    <div class="text-xs md:text-sm font-medium text-gray-500">Duration</div>
+                    <div class="text-sm md:text-lg font-bold text-primary">{{ .Duration }}</div>
+                </div>
+
+                <!-- View Logs Button -->
+                <button onclick="document.getElementById('log-window-{{ .TaskId }}').classList.toggle('hidden')"
+                    class="btn btn-xs md:btn-sm btn-secondary">
+                    View Logs ({{ .TaskLogs.LogRecordsCount }})
+                </button>
+            </div>
+
+            <!-- Task Logs Window -->
+            <div id="log-window-{{ .TaskId }}" class="mockup-window bg-base-300 border mt-4
+                {{ if not .LogsWindowOpen }} hidden {{ end }}"
+            >
+                {{ template "task_logs_in_window" . }}
+            </div>
+        </div>
+    </li>
+{{ end }}
+
+{{ block "task_logs_in_window" . }}
+<div class="bg-base-200 px-4 py-4 logs-content">
+    <h4 class="text-md font-semibold mb-2">Logs ({{ .TaskLogs.LoadedRecords }}/{{ .TaskLogs.LogRecordsCount }}):</h4>
+    <ul class="space-y-2">
+        {{ range .TaskLogs.Records }}
+        <li class="text-xs md:text-sm">
+            <span class="font-bold text-secondary">{{ .InsertTs.Time }}</span>
+            {{ if eq .Level "ERROR" }}
+                <span class="font-bold text-red-500">[{{ .Level }}]:</span>
+                <span class="text-red-500">{{ .Message }}</span>
+                {{ if ne .AttributesJson "{}" }}
+                    <span class="text-red-600">({{ .AttributesJson }})</span>
+                {{ end }}
+            {{ else }}
+                <span class="font-medium">[{{ .Level }}]:</span>
+                <span class="text-gray-400">{{ .Message }}</span>
+                {{ if ne .AttributesJson "{}" }}
+                    <span class="text-gray-600">({{ .AttributesJson }})</span>
+                {{ end }}
+            {{ end }}
+        </li>
+        {{ end }}
+    </ul>
+    {{ if eq .Status "RUNNING" }}
+        <button class="btn btn-xs md:btn-sm btn-info my-4"
+            hx-get="/dagruns/task/refresh/{{ .RunId }}/{{ .TaskId }}/{{ .Retry }}/{{ .Pos.Depth }}_{{ .Pos.Width }}_{{ .Pos.Indent }}"
+            hx-target="#task-{{ .TaskId }}-{{ .Retry}}"
+            hx-swap="outerHTML"
+        >
+            Sync logs
+        </button>
+    {{ end }}
+</div>
 {{ end }}
 
 {{ block "status" . }}
@@ -167,6 +199,8 @@
         <span class="text-success">✅ SUCCESS</span>
     {{ else if eq . "FAILED" }}
         <span class="text-error">❌ FAILED</span>
+    {{ else if eq . "FAILED_PENDING_RETRY" }}
+        <span class="text-error">❌🕒 FAILED (PENDING RETRY)</span>
     {{ else if eq . "RUNNING" }}
         <span class="text-warning">🔥 RUNNING</span>
     {{ else if eq . "PENDING" }}

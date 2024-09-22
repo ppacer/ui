@@ -2,7 +2,7 @@ module github.com/ppacer/ui
 
 go 1.22.0
 
-require github.com/ppacer/core v0.0.7
+require github.com/ppacer/core v0.0.9
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect

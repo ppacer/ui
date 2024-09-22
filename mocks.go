@@ -94,6 +94,27 @@ func (sm SchedulerMock) UIDagrunDetails(runId int) (api.UIDagrunDetails, error) 
 	return drd, nil
 }
 
+func (sm SchedulerMock) UIDagrunTaskDetails(
+	runId int, taskId string, retry int,
+) (api.UIDagrunTask, error) {
+	startTs := time.Now()
+	taskEnd := startTs.Add(time.Duration(rand.Intn(10000)) * time.Millisecond)
+	nLogs := rand.Intn(15)
+
+	t := api.UIDagrunTask{
+		TaskId:        taskId,
+		Retry:         retry,
+		InsertTs:      api.ToTimestamp(time.Now()),
+		TaskNoStarted: false,
+		Pos:           api.TaskPos{Depth: 2, Width: rand.Intn(100)},
+		Status:        randomStatus(),
+		Duration:      taskEnd.Sub(startTs).String(),
+		Config:        `{X:10,Y:"value"}`,
+		TaskLogs:      randomTaskLogs(nLogs),
+	}
+	return t, nil
+}
+
 func randomDagrunTasks(dagId string) []api.UIDagrunTask {
 	length := rand.Intn(10) + 3
 	switch dagId {

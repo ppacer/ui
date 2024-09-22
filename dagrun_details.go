@@ -6,14 +6,16 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/ppacer/core/api"
 	"github.com/ppacer/core/scheduler"
 )
 
 const (
-	dagrunDetailsErr = "dagrunDetailsErr"
-	maxTaskIndent    = 10
+	dagrunDetailsErr     = "dagrunDetailsErr"
+	dagrunTaskDetailsErr = "dagrunTaskDetailsErr"
+	maxTaskIndent        = 10
 )
 
 // Type pageDagRunDetails keeps data required for DAG run details
@@ -82,6 +84,110 @@ func (pdrd *pageDagRunDetails) MainHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+func (pdrd *pageDagRunDetails) RefreshSingleTaskDetailsHandler(
+	w http.ResponseWriter, r *http.Request,
+) {
+	var detailsErr error
+	var taskDetails api.UIDagrunTask
+
+	runId, taskId, retry, taskPos, parseErr := parseTaskLogsArgs(r)
+	if parseErr != nil {
+		pdrd.logger.Error("Invalid path arguments for RefreshSingleTaskDetailsHandler",
+			"parseErr", parseErr.Error())
+		pdrd.Errors[dagrunTaskDetailsErr] =
+			fmt.Sprintf("Invalid arguments for refreshing task details: %s",
+				parseErr.Error())
+	}
+
+	if parseErr == nil {
+		taskDetails, detailsErr = pdrd.schedApi.UIDagrunTaskDetails(
+			runId, taskId, retry,
+		)
+		if detailsErr != nil {
+			pdrd.logger.Error("Cannot get UI DAG run task details", "runId",
+				runId, "taskId", taskId, "retry", retry, "err",
+				detailsErr.Error())
+			pdrd.Errors[dagrunTaskDetailsErr] = "cannot get DAG run task details"
+		}
+	}
+	if parseErr != nil || detailsErr != nil {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		renderErr := pdrd.templates.Render(w, "page_dagrun_details", pdrd)
+		if renderErr != nil {
+			pdrd.logger.Error("Cannot render <page_dagrun_details>", "err",
+				renderErr.Error())
+		}
+		return
+	}
+
+	drt := DagrunTask{
+		RunId:          int64(runId),
+		TaskId:         taskId,
+		Retry:          retry,
+		InsertTs:       taskDetails.InsertTs,
+		TaskNoStarted:  false,
+		Status:         taskDetails.Status,
+		Pos:            taskPos,
+		Duration:       taskDetails.Duration,
+		Config:         taskDetails.Config,
+		TaskLogs:       toTaskLogs(taskDetails.TaskLogs),
+		LogsWindowOpen: true,
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	renderErr := pdrd.templates.Render(w, "dagrun_details_task_item", drt)
+	if renderErr != nil {
+		pdrd.logger.Error("Cannot render <dagrun_details_task_item>",
+			"err", renderErr.Error())
+	}
+}
+
+func parseTaskLogsArgs(r *http.Request) (int, string, int, TaskPos, error) {
+	var taskPos TaskPos
+	runId, parseRunIdErr := getPathValueInt(r, "runId")
+	if parseRunIdErr != nil {
+		err := fmt.Errorf("invalid runId: %w", parseRunIdErr)
+		return -1, "", -1, taskPos, err
+	}
+	taskId, parseTaskIdErr := getPathValueStr(r, "taskId")
+	if parseTaskIdErr != nil {
+		err := fmt.Errorf("invalid taskId: %w", parseTaskIdErr)
+		return -1, "", -1, taskPos, err
+	}
+	retry, parseRetryErr := getPathValueInt(r, "retry")
+	if parseRetryErr != nil {
+		err := fmt.Errorf("invalid retry argument: %w", parseRetryErr)
+		return -1, "", -1, taskPos, err
+	}
+
+	taskPosStr, tpErr := getPathValueStr(r, "taskPos")
+	if tpErr != nil {
+		err := fmt.Errorf("invalid taskPos argument: %w", tpErr)
+		return -1, "", -1, taskPos, err
+	}
+	const taskPosFields = 3
+	taskPosSplit := strings.Split(taskPosStr, "_")
+	if len(taskPosSplit) != taskPosFields {
+		err := fmt.Errorf("invalid taskPos value, expected %d_%d_%d format")
+		return -1, "", -1, taskPos, err
+	}
+	var posValues [taskPosFields]int
+	for i := 0; i < taskPosFields; i++ {
+		num, castErr := strconv.Atoi(taskPosSplit[i])
+		if castErr != nil {
+			err := fmt.Errorf("invalid taskPos value, cannot convert to integer: %w",
+				castErr)
+			return -1, "", -1, taskPos, err
+		}
+		posValues[i] = num
+	}
+	taskPos.Depth = posValues[0]
+	taskPos.Width = posValues[1]
+	taskPos.Indent = posValues[2]
+
+	return runId, taskId, retry, taskPos, nil
+}
+
 func (pdrd *pageDagRunDetails) prepareDagrunTaskDetails(
 	drd api.UIDagrunDetails, maxIndent int,
 ) DagrunDetails {
@@ -91,11 +197,11 @@ func (pdrd *pageDagRunDetails) prepareDagrunTaskDetails(
 		ExecTs:   drd.ExecTs,
 		Status:   drd.Status,
 		Duration: drd.Duration,
-		Tasks:    prepareDagrunTasks(drd.Tasks, maxIndent),
+		Tasks:    prepareDagrunTasks(drd.RunId, drd.Tasks, maxIndent),
 	}
 }
 
-func prepareDagrunTasks(tasks []api.UIDagrunTask, maxIndent int) []DagrunTask {
+func prepareDagrunTasks(runId int64, tasks []api.UIDagrunTask, maxIndent int) []DagrunTask {
 	sort.Slice(tasks, func(i, j int) bool {
 		if tasks[i].Pos.Depth != tasks[j].Pos.Depth {
 			return tasks[i].Pos.Depth < tasks[j].Pos.Depth
@@ -110,6 +216,7 @@ func prepareDagrunTasks(tasks []api.UIDagrunTask, maxIndent int) []DagrunTask {
 			indent = maxIndent
 		}
 		drt := DagrunTask{
+			RunId:         runId,
 			TaskId:        tasks[i].TaskId,
 			Retry:         tasks[i].Retry,
 			InsertTs:      tasks[i].InsertTs,
@@ -120,9 +227,10 @@ func prepareDagrunTasks(tasks []api.UIDagrunTask, maxIndent int) []DagrunTask {
 				Width:  tasks[i].Pos.Width,
 				Indent: indent,
 			},
-			Duration: tasks[i].Duration,
-			Config:   tasks[i].Config,
-			TaskLogs: toTaskLogs(tasks[i].TaskLogs),
+			Duration:       tasks[i].Duration,
+			Config:         tasks[i].Config,
+			TaskLogs:       toTaskLogs(tasks[i].TaskLogs),
+			LogsWindowOpen: false,
 		}
 		result[i] = drt
 	}
@@ -160,15 +268,18 @@ type DagrunDetails struct {
 }
 
 type DagrunTask struct {
-	TaskId        string
-	Retry         int
-	InsertTs      api.Timestamp
-	TaskNoStarted bool
-	Status        string
-	Pos           TaskPos
-	Duration      string
-	Config        string
-	TaskLogs      TaskLogs
+	RunId          int64
+	TaskId         string
+	Retry          int
+	InsertTs       api.Timestamp
+	TaskNoStarted  bool
+	Status         string
+	Pos            TaskPos
+	Duration       string
+	Config         string
+	TaskLogs       TaskLogs
+	LogsWindowOpen bool
+	Errors         map[string]string
 }
 
 // TaskPos represents a Task position in a DAG. Root starts in (D=1,W=1).

@@ -77,6 +77,10 @@ func (s *UI) Server() http.Handler {
 	// Page for DAG run details for given runId
 	drDetails := newPageDagRunDetails(s.schedulerAPI, templates, s.logger)
 	mux.HandleFunc("/dagruns/{runId}", drDetails.MainHandler)
+	mux.HandleFunc(
+		"/dagruns/task/refresh/{runId}/{taskId}/{retry}/{taskPos}",
+		drDetails.RefreshSingleTaskDetailsHandler,
+	)
 
 	// Page for DAGs
 	dagsPage := newPageDags(s.schedulerAPI, templates, s.logger, s.config)
