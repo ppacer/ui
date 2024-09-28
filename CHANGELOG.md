@@ -1,3 +1,7 @@
+# [v0.1.4] - 2024-09-28
+
+- Fix persisting error message on DAG run details page.
+
 # [v0.1.3] - 2024-09-01
 
 - Add single DAG run task synchronization (via Sync logs button) on DAG run

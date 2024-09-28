@@ -51,6 +51,7 @@ func newPageDagRunDetails(
 
 // MainHandler prepares and renders
 func (pdrd *pageDagRunDetails) MainHandler(w http.ResponseWriter, r *http.Request) {
+	pdrd.cleanDagrunDetailsErr()
 	runIdStr := r.PathValue("runId")
 	runId, castErr := strconv.Atoi(runIdStr)
 	if castErr != nil {
@@ -87,6 +88,7 @@ func (pdrd *pageDagRunDetails) MainHandler(w http.ResponseWriter, r *http.Reques
 func (pdrd *pageDagRunDetails) RefreshSingleTaskDetailsHandler(
 	w http.ResponseWriter, r *http.Request,
 ) {
+	pdrd.cleanTaskDetailsErr()
 	var detailsErr error
 	var taskDetails api.UIDagrunTask
 
@@ -198,6 +200,18 @@ func (pdrd *pageDagRunDetails) prepareDagrunTaskDetails(
 		Status:   drd.Status,
 		Duration: drd.Duration,
 		Tasks:    prepareDagrunTasks(drd.RunId, drd.Tasks, maxIndent),
+	}
+}
+
+func (pdrd *pageDagRunDetails) cleanDagrunDetailsErr() {
+	if _, exist := pdrd.Errors[dagrunDetailsErr]; exist {
+		pdrd.Errors[dagrunDetailsErr] = ""
+	}
+}
+
+func (pdrd *pageDagRunDetails) cleanTaskDetailsErr() {
+	if _, exist := pdrd.Errors[dagrunTaskDetailsErr]; exist {
+		pdrd.Errors[dagrunTaskDetailsErr] = ""
 	}
 }
 
