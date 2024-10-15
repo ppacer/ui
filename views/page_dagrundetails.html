@@ -6,6 +6,7 @@
         {{ template "navbar" . }}
         <div class="divider divider-secondary py-4">Run Summary</div>
             {{ template "dagrun_details_summary" . }}
+        {{ template "dagrun_details_actions" . }}
         <div class="divider divider-secondary py-4">Tasks</div>
 
         <div class="container mx-auto">
@@ -87,6 +88,28 @@
     </div>
 {{ end }}
 
+{{ block "dagrun_details_actions" . }}
+    {{ if eq .Details.Status "FAILED" }}
+    <div class="divider divider-secondary py-4">Actions</div>
+
+    {{ template "alert" (index .Errors "dagrunActionsErr") }}
+
+    <div class="container mx-auto py-4">
+        <div class="flex justify-center">
+            <button
+                class="btn btn-primary btn-md"
+                hx-post="/dagruns/restart"
+                hx-vals='{"dagId": "{{ .Details.DagId }}", "execTs": "{{ .Details.ExecTsRaw }}", "runId": "{{ .Details.RunId }}"}'
+                hx-target="body"
+                hx-swap="none"
+            >
+                Restart DAG Run
+            </button>
+        </div>
+    </div>
+    {{ end }}
+{{ end }}
+
 {{ block "dagrun_details_task_list" . }}
     <!-- Tasks List -->
     <div>
@@ -121,6 +144,14 @@
                     <div class="text-xs md:text-sm font-medium text-gray-500">Position</div>
                     <div class="text-sm md:text-lg font-bold text-primary">
                         ({{ .Pos.Depth }}, {{ .Pos.Width }})
+                    </div>
+                </div>
+
+                <!-- Retry -->
+                <div class="hidden md:flex flex-col w-full md:w-1/6">
+                    <div class="text-xs md:text-sm font-medium text-gray-500">Retry</div>
+                    <div class="text-sm md:text-lg font-bold text-primary">
+                        {{ .Retry }}
                     </div>
                 </div>
 

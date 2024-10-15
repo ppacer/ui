@@ -81,6 +81,7 @@ func (s *UI) Server() http.Handler {
 		"/dagruns/task/refresh/{runId}/{taskId}/{retry}/{taskPos}",
 		drDetails.RefreshSingleTaskDetailsHandler,
 	)
+	mux.HandleFunc("POST /dagruns/restart", drDetails.RestartDagRunHandler)
 
 	// Page for DAGs
 	dagsPage := newPageDags(s.schedulerAPI, templates, s.logger, s.config)

@@ -15,6 +15,7 @@ import (
 const (
 	dagrunDetailsErr     = "dagrunDetailsErr"
 	dagrunTaskDetailsErr = "dagrunTaskDetailsErr"
+	dagrunActionsErr     = "dagrunActionsErr"
 	maxTaskIndent        = 10
 )
 
@@ -83,6 +84,49 @@ func (pdrd *pageDagRunDetails) MainHandler(w http.ResponseWriter, r *http.Reques
 		pdrd.logger.Error("Cannot render <page_dagrun_details>", "err",
 			renderErr.Error())
 	}
+}
+
+// HTTP handler for restarting DAG run.
+func (pdrd *pageDagRunDetails) RestartDagRunHandler(w http.ResponseWriter, r *http.Request) {
+	pdrd.cleanDagrunActionsErr()
+	r.ParseForm()
+
+	dagId := r.FormValue("dagId")
+	execTs := r.FormValue("execTs")
+	runId := r.FormValue("runId")
+
+	if dagId == "" || execTs == "" {
+		pdrd.logger.Error("Invalid input for DAG restarting", "dagId", dagId,
+			"execTs", execTs)
+		pdrd.Errors[dagrunActionsErr] = "Cannot restart DAG run - invalid input"
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		renderErr := pdrd.templates.Render(w, "page_dagrun_details", pdrd)
+		if renderErr != nil {
+			pdrd.logger.Error("Cannot render <page_dagrun_details>", "err",
+				renderErr.Error())
+		}
+		return
+	}
+	input := api.DagRunRestartInput{DagId: dagId, ExecTs: execTs}
+	pdrd.logger.Info("Restarting DAG run", "input", input)
+
+	err := pdrd.schedApi.RestartDagRun(input)
+	if err != nil {
+		pdrd.logger.Error("Error while restarting DAG run", "input", input,
+			"err", err.Error())
+		pdrd.Errors[dagrunActionsErr] = "Cannot restart DAG run"
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		renderErr := pdrd.templates.Render(w, "page_dagrun_details", pdrd)
+		if renderErr != nil {
+			pdrd.logger.Error("Cannot render <page_dagrun_details>", "err",
+				renderErr.Error())
+		}
+		return
+	}
+
+	// Render DAG run summary once the DAG run is restarted.
+	w.Header().Set("HX-Redirect", fmt.Sprintf("/dagruns/%s", runId))
+	w.WriteHeader(http.StatusOK)
 }
 
 func (pdrd *pageDagRunDetails) RefreshSingleTaskDetailsHandler(
@@ -194,12 +238,13 @@ func (pdrd *pageDagRunDetails) prepareDagrunTaskDetails(
 	drd api.UIDagrunDetails, maxIndent int,
 ) DagrunDetails {
 	return DagrunDetails{
-		RunId:    drd.RunId,
-		DagId:    drd.DagId,
-		ExecTs:   drd.ExecTs,
-		Status:   drd.Status,
-		Duration: drd.Duration,
-		Tasks:    prepareDagrunTasks(drd.RunId, drd.Tasks, maxIndent),
+		RunId:     drd.RunId,
+		DagId:     drd.DagId,
+		ExecTs:    drd.ExecTs,
+		ExecTsRaw: drd.ExecTsRaw,
+		Status:    drd.Status,
+		Duration:  drd.Duration,
+		Tasks:     prepareDagrunTasks(drd.RunId, drd.Tasks, maxIndent),
 	}
 }
 
@@ -215,12 +260,21 @@ func (pdrd *pageDagRunDetails) cleanTaskDetailsErr() {
 	}
 }
 
+func (pdrd *pageDagRunDetails) cleanDagrunActionsErr() {
+	if _, exist := pdrd.Errors[dagrunActionsErr]; exist {
+		pdrd.Errors[dagrunActionsErr] = ""
+	}
+}
+
 func prepareDagrunTasks(runId int64, tasks []api.UIDagrunTask, maxIndent int) []DagrunTask {
 	sort.Slice(tasks, func(i, j int) bool {
 		if tasks[i].Pos.Depth != tasks[j].Pos.Depth {
 			return tasks[i].Pos.Depth < tasks[j].Pos.Depth
 		}
-		return tasks[i].Pos.Width < tasks[j].Pos.Width
+		if tasks[i].Pos.Width != tasks[j].Pos.Width {
+			return tasks[i].Pos.Width < tasks[j].Pos.Width
+		}
+		return tasks[i].Retry < tasks[j].Retry
 	})
 	result := make([]DagrunTask, len(tasks))
 
@@ -273,12 +327,13 @@ func toTaskLogRecords(tlr []api.UITaskLogRecord) []TaskLogRecord {
 }
 
 type DagrunDetails struct {
-	RunId    int64
-	DagId    string
-	ExecTs   api.Timestamp
-	Status   string
-	Duration string
-	Tasks    []DagrunTask
+	RunId     int64
+	DagId     string
+	ExecTs    api.Timestamp
+	ExecTsRaw string
+	Status    string
+	Duration  string
+	Tasks     []DagrunTask
 }
 
 type DagrunTask struct {

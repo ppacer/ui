@@ -44,6 +44,16 @@ func (sm SchedulerMock) GetState() (scheduler.State, error) {
 	return scheduler.StateRunning, nil
 }
 
+func (sm SchedulerMock) TriggerDagRun(in api.DagRunTriggerInput) error {
+	// TODO?
+	return nil
+}
+
+func (sm SchedulerMock) RestartDagRun(in api.DagRunRestartInput) error {
+	fmt.Println("Restarting DAG run", in)
+	return nil
+}
+
 // UIDagrunStats returns random stats on DAG runs.
 func (sm SchedulerMock) UIDagrunStats() (api.UIDagrunStats, error) {
 	return api.UIDagrunStats{
@@ -84,12 +94,13 @@ func (sm SchedulerMock) UIDagrunDetails(runId int) (api.UIDagrunDetails, error) 
 	}
 	dagId := dagIds[rand.Intn(len(dagIds))]
 	drd := api.UIDagrunDetails{
-		RunId:    int64(runId),
-		DagId:    dagId,
-		ExecTs:   api.ToTimestamp(now),
-		Status:   randomStatus(),
-		Duration: end.Sub(now).String(),
-		Tasks:    randomDagrunTasks(dagId),
+		RunId:     int64(runId),
+		DagId:     dagId,
+		ExecTs:    api.ToTimestamp(now),
+		ExecTsRaw: now.Format(time.RFC3339),
+		Status:    randomStatus(),
+		Duration:  end.Sub(now).String(),
+		Tasks:     randomDagrunTasks(dagId),
 	}
 	return drd, nil
 }
