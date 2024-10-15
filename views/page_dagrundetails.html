@@ -14,18 +14,18 @@
         </div>
 
         <script>
-            function checkLogWindow(taskId) {
+            function checkLogWindow(taskId, retry) {
                 console.log(`checkLogWindow for taskId: ${taskId}`);
-                var logWindow = document.getElementById('log-window-' + taskId);
+                var logWindow = document.getElementById('log-window-' + taskId + '-' + retry);
                 if (!logWindow.classList.contains('hidden')) {
                   logWindow.setAttribute('data-open', 'true');
                 } else {
                   logWindow.removeAttribute('data-open');
                 }
             }
-            function keepLogWindowOpen(taskId) {
+            function keepLogWindowOpen(taskId, retry) {
                 console.log(`keepLogWindowOpen for taskId: ${taskId}`);
-                var logWindow = document.getElementById('log-window-' + taskId);
+                var logWindow = document.getElementById('log-window-' + taskId + '-' + retry);
                 if (logWindow.getAttribute('data-open') === 'true') {
                   logWindow.classList.remove('hidden');
                 }
@@ -168,14 +168,14 @@
                 </div>
 
                 <!-- View Logs Button -->
-                <button onclick="document.getElementById('log-window-{{ .TaskId }}').classList.toggle('hidden')"
+                <button onclick="document.getElementById('log-window-{{ .TaskId }}-{{ .Retry }}').classList.toggle('hidden')"
                     class="btn btn-xs md:btn-sm btn-secondary">
                     View Logs ({{ .TaskLogs.LogRecordsCount }})
                 </button>
             </div>
 
             <!-- Task Logs Window -->
-            <div id="log-window-{{ .TaskId }}" class="mockup-window bg-base-300 border mt-4
+            <div id="log-window-{{ .TaskId }}-{{ .Retry }}" class="mockup-window bg-base-300 border mt-4
                 {{ if not .LogsWindowOpen }} hidden {{ end }}"
             >
                 {{ template "task_logs_in_window" . }}

@@ -1,3 +1,9 @@
+# [v0.1.5] - 2024-10-15
+
+- Add task retry number on DAG run details page.
+- Add "Actions" section on DAG run details page, with "DAG Run restart" button
+  in case when DAG run has failed.
+
 # [v0.1.4] - 2024-09-28
 
 - Fix persisting error message on DAG run details page.
